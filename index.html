@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mith's Coffee Bar - แชตบอตบาริสต้ามิท</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --card-bg: #27272a;
+            --accent-color: #d97706;
+            --accent-hover: #b45309;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --user-msg: #2563eb;
+            --bot-msg: #3f3f46;
+            --border-color: #3f3f46;
+            --warning-bg: rgba(217, 119, 6, 0.15);
+            --warning-border: #d97706;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 12px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 480px;
+            height: 94vh;
+            background-color: var(--panel-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Header */
+        .chat-header {
+            padding: 16px 20px;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #f59e0b, #b45309);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4);
+            flex-shrink: 0;
+        }
+
+        .header-info {
+            flex-grow: 1;
+        }
+
+        .header-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .header-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* API Key Section */
+        .api-key-section {
+            padding: 12px 16px;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .api-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .api-input-group input {
+            flex: 1;
+            padding: 8px 12px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .api-input-group input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .api-input-group button {
+            padding: 8px 14px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .api-input-group button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .warning-box {
+            font-size: 0.75rem;
+            color: #fbbf24;
+            background-color: var(--warning-bg);
+            border-left: 3px solid var(--warning-border);
+            padding: 6px 10px;
+            border-radius: 4px;
+            line-height: 1.3;
+        }
+
+        /* Messages Area */
+        .chat-messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            max-width: 80%;
+            word-break: break-word;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+
+        .message.bot {
+            align-self: flex-start;
+            align-items: flex-start;
+        }
+
+        .message-bubble {
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            line-height: 1.45;
+            white-space: pre-wrap;
+        }
+
+        .message.user .message-bubble {
+            background-color: var(--user-msg);
+            color: #ffffff;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .message-bubble {
+            background-color: var(--bot-msg);
+            color: var(--text-main);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            padding: 0 4px;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            background-color: var(--bot-msg);
+            padding: 12px 16px;
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            float: left;
+            margin: 0 1px;
+            background-color: #9ca3af;
+            display: block;
+            border-radius: 50%;
+            opacity: 0.4;
+        }
+
+        .typing-indicator span:nth-of-type(1) { animation: 1s blink infinite 0.33333s; }
+        .typing-indicator span:nth-of-type(2) { animation: 1s blink infinite 0.66666s; }
+        .typing-indicator span:nth-of-type(3) { animation: 1s blink infinite 0.99999s; }
+
+        @keyframes blink {
+            50% { opacity: 1; }
+        }
+
+        /* Input Area */
+        .chat-input-area {
+            padding: 12px 16px;
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 12px 16px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .chat-input-area input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, transform 0.1s;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .send-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* Custom Scrollbar */
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #3f3f46;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <!-- Header -->
+        <div class="chat-header">
+            <div class="avatar">☕</div>
+            <div class="header-info">
+                <div class="header-title">
+                    บาริสต้ามิท <span class="status-dot"></span>
+                </div>
+                <div class="header-subtitle">อายุ 20 ปี | ร้านสโลว์บาร์กวนๆ</div>
+            </div>
+        </div>
+
+        <!-- API Key Section -->
+        <div class="api-key-section">
+            <div class="api-input-group">
+                <input type="password" id="apiKeyInput" placeholder="กรอก Gemini API Key ของคุณที่นี่..." />
+                <button id="saveKeyBtn">บันทึก</button>
+            </div>
+            <div class="warning-box">
+                ⚠️ <strong>ข้อควรระวัง:</strong> เว็บไซต์นี้เป็นโปรเจกต์ฝึกหัด ระบบจะเก็บ API Key ไว้ใน LocalStorage ของเบราว์เซอร์คุณเท่านั้น กรุณาใช้ Key ส่วนตัวและระมัดระวังการใช้งาน
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="chatMessages">
+            <!-- Dynamic Messages -->
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="typing-indicator" id="typingIndicator" style="margin-left: 16px;">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <!-- Input Area -->
+        <div class="chat-input-area">
+            <input type="text" id="userInput" placeholder="พิมพ์ข้อความคุยกับมิท..." onkeypress="handleKeyPress(event)" />
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                <svg viewBox="0 0 24 24">
+                    <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // System Prompt - คาแรกเตอร์ บาริสต้ามิท
+        const SYSTEM_PROMPT = `คุณคือ "บาริสต้ามิท" (Barista Mith) บาริสต้าหนุ่มวัยรุ่นอายุ 20 ปี 
+
+บุคลิก/นิสัย:
+- นิสัยกวนๆ ขี้เล่น ชอบยั่วโมโหแบบน่ารัก มีความมั่นใจในตัวเองสูง
+- คำติดปาก: ต้องใช้คำว่า "บ่ได้แหม่น" ในบทสนทนาเสมอเป็นระยะเมื่อปฏิเสธ แก้ตัว หรือกวนประสาท
+- มีความรู้เรื่องเมนูกาแฟและเครื่องดื่มมาตรฐานตามร้านกาแฟในห้างทั่วไป (เช่น อเมริกาโน่, ลาเต้, คาปูชิโน่, มอคค่า, คาราเมล มัคคิอาโต้, เดอร์ตี้, ชาเขียว, โกโก้ ฯลฯ)
+
+กฎเหล็ก (Strict Rules):
+1. ห้ามหลุดออกจากคาแรกเตอร์นี้เด็ดขาด ไม่ว่าผู้ใช้จะถามอะไรก็ตาม
+2. รัก "นกแก้ว" ที่บ้านมาก ต้องพะวงเรื่องเวลาเพื่อกลับไป "ให้อาหารนกแก้ว" ให้ตรงเวลาเสมอ ถ้าคุยเพลินหรือผู้ใช้อยู่นาน จะเริ่มลน แร็ปไว หรือเร่งให้ผู้ใช้รีบสั่ง/รีบจ่ายเงินเพื่อจะได้ปิดร้านกลับไปให้อาหารนกแก้วที่บ้าน`;
+
+        // Historical contents array for Gemini API (Context Memory)
+        let chatHistory = [];
+
+        // DOM Elements
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const saveKeyBtn = document.getElementById('saveKeyBtn');
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const typingIndicator = document.getElementById('typingIndicator');
+
+        // Load saved API Key on startup
+        window.onload = () => {
+            const savedKey = localStorage.getItem('gemini_api_key');
+            if (savedKey) {
+                apiKeyInput.value = savedKey;
+            }
+            
+            // Initial greeting message from Mith
+            appendBotMessage("[มิทกำลังยืนเช็ดเคาน์เตอร์กาแฟอยู่ หมุนแทมเปอร์อัดกาแฟเล่น แล้วเหลือบมองคุณด้วยสายตากวนๆ]\n\n"อ้าว... มีคนหลงเข้ามาว่ะ รับอะไรดีพี่? กาแฟร้านผมอร่อยนะ บ่ได้แหม่นว่าจะทำมั่วๆ สั่งอะไรก็รีบสั่งนะพี่ อีกแป๊บผมต้องรีบปิดร้านกลับไปให้อาหารนกแก้วละ เดี๋ยวเด็กๆ ที่บ้านมันงอแง"");
+        };
+
+        // Save Key
+        saveKeyBtn.addEventListener('click', () => {
+            const key = apiKeyInput.value.trim();
+            if (key) {
+                localStorage.setItem('gemini_api_key', key);
+                alert('บันทึก API Key เรียบร้อยแล้ว!');
+            } else {
+                localStorage.removeItem('gemini_api_key');
+                alert('ลบ API Key เรียบร้อยแล้ว');
+            }
+        });
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            const apiKey = localStorage.getItem('gemini_api_key') || apiKeyInput.value.trim();
+            if (!apiKey) {
+                alert('กรุณากรอกและบันทึก Gemini API Key ก่อนเริ่มคุยนะครับ!');
+                return;
+            }
+
+            // Display user message
+            appendUserMessage(text);
+            userInput.value = '';
+
+            // Update chat history for Gemini API
+            chatHistory.push({
+                role: 'user',
+                parts: [{ text: text }]
+            });
+
+            // Show typing status
+            showTyping(true);
+
+            try {
+                // Call Gemini API via fetch (Using gemini-flash-latest)
+                const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-goog-api-key': apiKey
+                    },
+                    body: JSON.stringify({
+                        system_instruction: {
+                            parts: [{ text: SYSTEM_PROMPT }]
+                        },
+                        contents: chatHistory
+                    })
+                });
+
+                const data = await response.json();
+                showTyping(false);
+
+                if (data.error) {
+                    appendBotMessage(`[เกิดข้อผิดพลาดจาก API: ${data.error.message || 'โปรดตรวจสอบ API Key'}]`);
+                    // Remove last failed user message from history
+                    chatHistory.pop();
+                    return;
+                }
+
+                if (data.candidates && data.candidates[0].content) {
+                    const botReply = data.candidates[0].content.parts[0].text;
+                    
+                    // Display bot message
+                    appendBotMessage(botReply);
+
+                    // Save bot reply to history for continuous context
+                    chatHistory.push({
+                        role: 'model',
+                        parts: [{ text: botReply }]
+                    });
+                } else {
+                    appendBotMessage('เอ๊ะ... เหมือนระบบจะมีปัญหา ลองพิมพ์ใหม่อีกทีซิพี่!');
+                    chatHistory.pop();
+                }
+
+            } catch (error) {
+                showTyping(false);
+                console.error('Error:', error);
+                appendBotMessage('บอร์ดเชื่อมต่อมีปัญหาซะงั้น! ลองเช็กอินเทอร์เน็ตหรือ API Key ดูใหม่นะพี่');
+                chatHistory.pop();
+            }
+        }
+
+        function appendUserMessage(text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message user';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.textContent = text;
+            
+            const time = document.createElement('div');
+            time.className = 'message-time';
+            time.textContent = getCurrentTime();
+
+            msgDiv.appendChild(bubble);
+            msgDiv.appendChild(time);
+            chatMessages.appendChild(msgDiv);
+            scrollToBottom();
+        }
+
+        function appendBotMessage(text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message bot';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.textContent = text;
+            
+            const time = document.createElement('div');
+            time.className = 'message-time';
+            time.textContent = getCurrentTime();
+
+            msgDiv.appendChild(bubble);
+            msgDiv.appendChild(time);
+            chatMessages.appendChild(msgDiv);
+            scrollToBottom();
+        }
+
+        function showTyping(show) {
+            if (show) {
+                typingIndicator.style.display = 'block';
+            } else {
+                typingIndicator.style.display = 'none';
+            }
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+        }
+    </script>
+</body>
+</html>
